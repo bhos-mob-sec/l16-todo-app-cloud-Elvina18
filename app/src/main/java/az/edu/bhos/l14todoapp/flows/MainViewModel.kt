@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
+
 class MainViewModel(
     todoRepo: TodoRepository
 ) : ViewModel() {
@@ -26,9 +27,19 @@ class MainViewModel(
 
         todoRepo.observeTodoEntries()
             .onEach { todos ->
-                // todo convert todos to bundles
+                val groupedTodos = todos.groupBy { it.weekday }
+                val todoBundles = groupedTodos.map { (weekday, todos) ->
+                    TodoBundle(
+                        todos = todos,
+                        weekday = weekday
+                    )
+                }
 
-                _todoBundles.postValue(emptyList())
+                val weekdays = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+
+                val sortedTodoBundles = todoBundles.sortedBy { weekdays.indexOf(it.weekday) }
+
+                _todoBundles.postValue(sortedTodoBundles)
             }.launchIn(viewModelScope)
     }
 }
